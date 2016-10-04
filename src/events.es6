@@ -1,3 +1,5 @@
+import {objectCenterCoordinates} from './dom'
+
 export const mousedown = generateMouseEventMethod('mousedown')
 export const mouseover = generateMouseEventMethod('mouseover')
 export const mouseout = generateMouseEventMethod('mouseout')
@@ -5,7 +7,7 @@ export const mousemove = generateMouseEventMethod('mousemove')
 export const mouseup = generateMouseEventMethod('mouseup')
 export const click = generateMouseEventMethod('click')
 
-export const mousewheel = (obj, deltaX = 0, deltaY = 0) => {
+export const mousewheel = (obj, deltaY = 0, deltaX = 0) => {
   obj.dispatchEvent(mouseEvent('mousewheel', {
     deltaX,
     deltaY,
@@ -14,12 +16,16 @@ export const mousewheel = (obj, deltaX = 0, deltaY = 0) => {
   }))
 }
 
+export const keydown = generateKeyboardEventMethod('keydown')
+export const keyup = generateKeyboardEventMethod('keyup')
+export const keypress = generateKeyboardEventMethod('keypress')
+
 export const touchstart = generateTouchEventMethod('touchstart')
 export const touchmove = generateTouchEventMethod('touchmove')
 export const touchend = generateTouchEventMethod('touchend')
 
 export function mouseEvent (type, properties) {
-  let defaults = {
+  const defaults = {
     bubbles: true,
     cancelable: (type !== 'mousemove'),
     view: window,
@@ -54,7 +60,7 @@ export function mouseEvent (type, properties) {
 }
 
 export function touchEvent (type, touches) {
-  let event = new window.Event(type, {
+  const event = new window.Event(type, {
     bubbles: true,
     cancelable: true,
     view: window,
@@ -68,27 +74,19 @@ export function touchEvent (type, touches) {
   return event
 }
 
-export function inputEvent (type, properties = {}) {
+export function keyboardEvent (type, properties) {
   return new window.KeyboardEvent(type, properties)
-}
-
-export function objectCenterCoordinates (obj) {
-  let {top, left, width, height} = obj.getBoundingClientRect()
-  return {x: left + width / 2, y: top + height / 2}
 }
 
 function generateMouseEventMethod (name) {
   return (obj, {x, y, cx, cy, btn} = {}) => {
-    if (!((typeof x !== 'undefined' && x !== null) && (typeof y !== 'undefined' && y !== null))) {
-      let o = objectCenterCoordinates(obj)
-      x = o.x
-      y = o.y
-    }
+    const o = objectCenterCoordinates(obj)
 
-    if (!((typeof cx !== 'undefined' && cx !== null) && (typeof cy !== 'undefined' && cy !== null))) {
-      cx = x
-      cy = y
-    }
+    if (x == null) { x = o.x }
+    if (y == null) { y = o.y }
+
+    if (cx == null) { cx = x }
+    if (cy == null) { cy = y }
 
     obj.dispatchEvent(mouseEvent(name, {
       pageX: x, pageY: y, clientX: cx, clientY: cy, button: btn
@@ -100,27 +98,22 @@ const exists = (value) => value != null
 
 function generateTouchEventMethod (name) {
   return (obj, touches) => {
-    if (!Array.isArray(touches)) {
-      touches = [touches]
-    }
+    const o = objectCenterCoordinates(obj)
 
-    touches.forEach((touch) => {
-      if (!exists(touch.target)) {
-        touch.target = obj
-      }
+    if (!Array.isArray(touches)) { touches = [touches] }
 
-      if (!(exists(touch.pageX) && exists(touch.pageY))) {
-        let o = objectCenterCoordinates(obj)
-        touch.pageX = exists(touch.x) ? touch.x : o.x
-        touch.pageY = exists(touch.y) ? touch.y : o.y
-      }
-
-      if (!(exists(touch.clientX) && exists(touch.clientY))) {
-        touch.clientX = touch.pageX
-        touch.clientY = touch.pageY
-      }
+    touches.forEach((t) => {
+      if (!exists(t.target)) { t.target = obj }
+      if (!exists(t.pageX)) { t.pageX = exists(t.x) ? t.x : o.x }
+      if (!exists(t.pageY)) { t.pageY = exists(t.y) ? t.y : o.y }
+      if (!exists(t.clientX)) { t.clientX = exists(t.x) ? t.cx : t.pageX }
+      if (!exists(t.clientY)) { t.clientY = exists(t.y) ? t.cy : t.pageY }
     })
 
     obj.dispatchEvent(touchEvent(name, touches))
   }
+}
+
+function generateKeyboardEventMethod (name) {
+  return (obj, options) => obj.dispatchEvent(keyboardEvent(name, options))
 }
