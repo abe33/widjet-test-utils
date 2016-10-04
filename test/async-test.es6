@@ -1,6 +1,4 @@
 import expect from 'expect.js'
-import jsdom from 'mocha-jsdom'
-import sinon from 'sinon'
 
 import {waitsFor} from '../src/async'
 
