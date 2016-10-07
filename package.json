@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "A bunch of test utilities for widjet plugins",
   "main": "lib/index.js",
+  "bin": {
+    "widjet-test-server": "./server.js"
+  },
   "jsnext:main": "src/index.es6",
   "scripts": {
     "test": "nyc mocha --timeout 5000 --recursive --compilers js:babel-register test/**/*.es6 test/*.es6",
@@ -43,7 +46,15 @@
   },
   "dependencies": {
     "babel-cli": "^6.3.17",
-    "babel-preset-es2015": "^6.3.13"
+    "babel-preset-es2015": "^6.3.13",
+    "colors": "^1.1.2",
+    "glob": "^7.1.0",
+    "rollup": "^0.36.1",
+    "rollup-plugin-babel": "^2.6.1",
+    "rollup-plugin-commonjs": "^5.0.4",
+    "rollup-plugin-includepaths": "^0.1.6",
+    "rollup-plugin-node-resolve": "^2.0.0",
+    "widjet-utils": "^0.3.0"
   },
   "standard": {
     "parser": "babel-eslint",
