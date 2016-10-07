@@ -34,7 +34,7 @@ const getTestScripts = (files) => {
   }).join('')
 }
 
-const matchPath = pattern => ({path}) => pattern.test(path.path)
+const matchPath = pattern => ({path}) => pattern.test(path.pathname)
 
 const staticFile = filepath => ({req, res}) => {
   fs.readFile(filepath, 'binary', (err, file) => {
