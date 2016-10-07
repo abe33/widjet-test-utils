@@ -11,6 +11,35 @@ import commonjs from 'rollup-plugin-commonjs'
 import nodeResolve from 'rollup-plugin-node-resolve'
 import includePaths from 'rollup-plugin-includepaths'
 
+const cwd = process.cwd()
+
+glob(path.join(cwd, process.argv.pop()), {}, (er, files) => {
+  const filesList = files
+  .map(f => `${(cwd + '/').grey}${path.relative(cwd, f).cyan}`)
+  .join('\n')
+  console.log('\nTest files:\n\n'.cyan + filesList)
+
+  const html = getHTML(getTestScripts(files))
+
+  const server = createServer([
+    [
+      matchPath(/mocha\.js$/),
+      staticFile(path.resolve(cwd, 'node_modules/mocha/mocha.js'))
+    ],
+    [
+      matchPath(/mocha\.css$/),
+      staticFile(path.resolve(cwd, 'node_modules/mocha/mocha.css'))
+    ],
+    [matchPath(/\.es6$/), rollupResponse],
+    [matchPath(/^\/$/), (o) => response(o, 200, html)],
+    [always, (o) => response(o, 404, 'not found')]
+  ])
+
+  server.listen(3000, () => {
+    console.log('\nlistening on'.grey, 'localhost:3000\n'.green)
+  })
+})
+
 const createServer = (routes) => {
   const router = when(routes)
   const server = http.createServer((req, res) => {
@@ -22,10 +51,26 @@ const createServer = (routes) => {
 }
 
 const log = (req, status, color) => {
-  console.log(`${status.toString()[color]} ${req.method.cyan} ${String(req.url).grey}`)
+  console.log(`${String(status)[color]} ${req.method.cyan} ${String(req.url).grey}`)
 }
 
-const cwd = process.cwd()
+const statusColor = when([
+  [s => s < 300, s => 'green'],
+  [s => s < 400, s => 'yellow'],
+  [always, s => 'red']
+])
+
+const response = ({req, res}, status, data, mode) => {
+  log(req, status, statusColor(status))
+  if (status === 500 && data.message) {
+    console.log(String(data.message).red)
+    console.log(String(data.message.stack).grey)
+  }
+
+  res.writeHead(status)
+  res.write(data, mode)
+  res.end()
+}
 
 const getTestScripts = (files) => {
   return files.map((f) => {
@@ -36,28 +81,17 @@ const getTestScripts = (files) => {
 
 const matchPath = pattern => ({path}) => pattern.test(path.pathname)
 
-const staticFile = filepath => ({req, res}) => {
-  fs.readFile(filepath, 'binary', (err, file) => {
-    if (err) {
-      log(req, '500', 'red')
-      res.writeHead(500, {'Content-Type': 'text/plain'})
-      res.write(err + '\n')
-      res.end()
-      return
-    }
-
-    log(req, '200', 'green')
-    res.writeHead(200)
-    res.write(file, 'binary')
-    res.end()
-  })
+const staticFile = filepath => (o) => {
+  fs.readFile(filepath, 'binary', (err, file) =>
+    err
+      ? response(o, 500, err)
+      : response(o, 200, file, 'binary')
+  )
 }
 
-const rollupResponse = ({req, res, path}) => {
-  const localPath = `.${path.path}`
-
+const rollupResponse = (o) => {
   rollup({
-    entry: localPath,
+    entry: `${cwd}/${o.path.pathname}`,
     external: [
       'mocha-jsdom',
       'expect.js',
@@ -78,69 +112,36 @@ const rollupResponse = ({req, res, path}) => {
       }
     })
 
-    log(req, '200', 'green')
-    res.writeHead(200)
-    res.write(result.code)
-    res.end()
+    response(o, 200, result.code)
   }).catch((err) => {
-    log(req, '500', 'red')
-    console.log(String(err.message).red)
-    console.log(String(err.message.stack).grey)
+    response(o, 500, err)
   })
 }
-glob(path.join(cwd, process.argv.pop()), {}, (er, files) => {
-  console.log('\nTest files:\n\n'.cyan + files.map(f => {
-    const relativePath = path.relative(cwd, f)
 
-    return `${(cwd + '/').grey}${relativePath.cyan}`
-  }).join('\n'))
+const getHTML = (scripts) =>
+  `
+    <!doctype html>
+    <html>
+      <head>
+        <meta charset='utf-8'>
+        <link href='/mocha.css' rel='stylesheet'>
+      </head>
 
-  const server = createServer([
-    [matchPath(/mocha\.js$/), staticFile('./node_modules/mocha/mocha.js')],
-    [matchPath(/mocha\.css$/), staticFile('./node_modules/mocha/mocha.css')],
-
-    [matchPath(/\.es6$/), rollupResponse],
-    [
-      matchPath(/^\/$/), ({req, res}) => {
-        const html = `
-          <!doctype html>
-          <html>
-            <head>
-              <meta charset='utf-8'>
-              <link href='/mocha.css' rel='stylesheet'>
-            </head>
-
-            <body>
-              <div id="mocha"></div>
-              <div id="mocha-container"></div>
-              <script type='text/javascript' src='/mocha.js'></script>
-              <script src="https://cdn.rawgit.com/Automattic/expect.js/0.3.1/index.js"></script>
-              <script src="http://cdnjs.cloudflare.com/ajax/libs/sinon.js/1.7.3/sinon-min.js"></script>
-              <script>
-                mocha.setup('bdd')
-                window.jsdom = function(){}
-              </script>
-              ${getTestScripts(files)}
-              <script>
-                mocha.checkLeaks()
-                mocha.run()
-              </script>
-            </body>
-          </html>
-        `
-        log(req, '200', 'green')
-        res.writeHead(200)
-        res.end(html)
-      }
-    ],
-    [always, ({req, res}) => {
-      log(req, '404', 'red')
-      res.writeHead(404)
-      res.end('404 not found')
-    }]
-  ])
-
-  server.listen(3000, () => {
-    console.log('\nlistening on'.grey, 'localhost:3000\n'.green)
-  })
-})
+      <body>
+        <div id="mocha"></div>
+        <div id="mocha-container"></div>
+        <script type='text/javascript' src='/mocha.js'></script>
+        <script src="https://cdn.rawgit.com/Automattic/expect.js/0.3.1/index.js"></script>
+        <script src="http://cdnjs.cloudflare.com/ajax/libs/sinon.js/1.7.3/sinon-min.js"></script>
+        <script>
+          mocha.setup('bdd')
+          window.jsdom = function(){}
+        </script>
+        ${scripts}
+        <script>
+          mocha.checkLeaks()
+          mocha.run()
+        </script>
+      </body>
+    </html>
+  `
