@@ -52,7 +52,7 @@ export function mouseEvent (type, properties) {
 
   for (let k in properties) {
     if (e[k] !== properties[k]) {
-      e[k] = properties[k]
+      Object.defineProperty(e, k, {get: () => properties[k]})
     }
   }
 

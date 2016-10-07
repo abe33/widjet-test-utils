@@ -24,7 +24,9 @@ describe('events helper', () => {
   }
 
   beforeEach(() => {
-    document.body.innerHTML = '<div></div>'
+    const testContainer = document.querySelector('#mocha-container') || document.body
+
+    testContainer.innerHTML = '<div></div>'
     div = document.querySelector('div')
   })
 
