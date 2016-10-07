@@ -14,7 +14,8 @@
     "babel": "babel src --out-dir .",
     "standard": "standard src/*.es6 test/*.es6",
     "esdoc": "esdoc -c esdoc.json",
-    "install": "npm run babel"
+    "install": "npm run babel",
+    "start": "npm run babel && node ./server.js test/**/*.es6"
   },
   "keywords": [
     "widgets",
