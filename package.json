@@ -67,6 +67,7 @@
     ]
   },
   "babel": {
+    "sourceMaps": "inline",
     "presets": [
       "es2015"
     ],
