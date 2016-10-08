@@ -11,7 +11,7 @@
     "test": "nyc mocha --timeout 5000 --recursive --compilers js:babel-register test/**/*.es6 test/*.es6",
     "lcov_report": "nyc report --reporter=lcov",
     "coverage": "npm run lcov_report && codecov",
-    "babel": "babel src --out-dir .",
+    "babel": "babel src --out-dir . && chmod +x server.js",
     "standard": "standard src/*.es6 test/*.es6",
     "esdoc": "esdoc -c esdoc.json",
     "install": "npm run babel",
