@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import 'colors'
 import fs from 'fs'
 import url from 'url'
