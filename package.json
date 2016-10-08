@@ -15,6 +15,7 @@
     "standard": "standard src/*.es6 test/*.es6",
     "esdoc": "esdoc -c esdoc.json",
     "install": "npm run babel",
+    "prepublish": "npm run babel",
     "start": "npm run babel && node ./server.js test/**/*.es6"
   },
   "keywords": [
