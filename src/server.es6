@@ -5,7 +5,7 @@ import path from 'path'
 import glob from 'glob'
 import http from 'http'
 import {rollup} from 'rollup'
-import {when, always} from 'widjet-utils'
+import {when, always, merge} from 'widjet-utils'
 
 import commonjs from 'rollup-plugin-commonjs'
 import nodeResolve from 'rollup-plugin-node-resolve'
@@ -13,13 +13,21 @@ import includePaths from 'rollup-plugin-includepaths'
 
 const cwd = process.cwd()
 
+const configPath = path.join(cwd, 'widjet-test-server.json')
+const serverConf = fs.existsSync(configPath) ? require(configPath) : {}
+
+const rollupConf = serverConf.rollup || {}
+
 glob(path.join(cwd, process.argv.pop()), {}, (er, files) => {
   const filesList = files
   .map(f => `${(cwd + '/').grey}${path.relative(cwd, f).cyan}`)
   .join('\n')
   console.log('\nTest files:\n\n'.cyan + filesList)
 
-  const html = getHTML(getTestScripts(files))
+  const html = getHTML({
+    scripts: (serverConf.scripts || []).map(getScript).join(''),
+    testScripts: getTestScripts(files)
+  })
 
   const server = createServer([
     [
@@ -72,12 +80,11 @@ const response = ({req, res}, status, data, mode) => {
   res.end()
 }
 
-const getTestScripts = (files) => {
-  return files.map((f) => {
-    const relativePath = path.relative(cwd, f)
-    return `<script src='/${relativePath}' type='text/javascript'></script>`
-  }).join('')
-}
+const getTestScripts = (files) =>
+  files.map(f => getScript('/' + path.relative(cwd, f))).join('')
+
+const getScript = (path) =>
+  `<script src='${path}' type='text/javascript'></script>`
 
 const matchPath = pattern => ({path}) => pattern.test(path.pathname)
 
@@ -91,25 +98,20 @@ const staticFile = filepath => (o) => {
 
 const rollupResponse = (o) => {
   rollup({
-    entry: `${cwd}/${o.path.pathname}`,
-    external: [
-      'mocha-jsdom',
-      'expect.js',
-      'sinon'
-    ],
+    entry: path.join(cwd, o.path.pathname),
+    external: ['mocha-jsdom'].concat(rollupConf.external || []),
     plugins: [
-      includePaths({paths: ['test/'], extensions: [ '.js', '.json', '.es6' ]}),
+      includePaths({
+        paths: ['test/'].concat(rollupConf.includePaths || []),
+        extensions: ['.js', '.json', '.es6']
+      }),
       nodeResolve({jsnext: true, main: true}),
       commonjs()
     ]
   }).then((bundle) => {
     const result = bundle.generate({
-      format: 'iife',
-      globals: {
-        'mocha-jsdom': 'jsdom',
-        'expect.js': 'expect',
-        'sinon': 'sinon'
-      }
+      format: rollupConf.format || 'iife',
+      globals: merge({'mocha-jsdom': 'jsdom'}, rollupConf.globals || {})
     })
 
     response(o, 200, result.code)
@@ -118,7 +120,7 @@ const rollupResponse = (o) => {
   })
 }
 
-const getHTML = (scripts) =>
+const getHTML = ({scripts, testScripts}) =>
   `
     <!doctype html>
     <html>
@@ -131,13 +133,12 @@ const getHTML = (scripts) =>
         <div id="mocha"></div>
         <div id="mocha-container"></div>
         <script type='text/javascript' src='/mocha.js'></script>
-        <script src="https://cdn.rawgit.com/Automattic/expect.js/0.3.1/index.js"></script>
-        <script src="http://cdnjs.cloudflare.com/ajax/libs/sinon.js/1.7.3/sinon-min.js"></script>
+        ${scripts}
         <script>
           mocha.setup('bdd')
           window.jsdom = function(){}
         </script>
-        ${scripts}
+        ${testScripts}
         <script>
           mocha.checkLeaks()
           mocha.run()
