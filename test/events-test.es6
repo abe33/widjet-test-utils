@@ -2,7 +2,7 @@ import expect from 'expect.js'
 import jsdom from 'mocha-jsdom'
 import sinon from 'sinon'
 
-import {fakeBoundingClientRects, getBox} from '../src/dom'
+import {fakeBoundingClientRects, getBox, setPageContent} from '../src/dom'
 import {
   mousedown, mouseover, mouseout, mousemove, mouseup, mousewheel, click,
   touchstart, touchmove, touchend,
@@ -24,9 +24,7 @@ describe('events helper', () => {
   }
 
   beforeEach(() => {
-    const testContainer = document.querySelector('#mocha-container') || document.body
-
-    testContainer.innerHTML = '<div></div>'
+    setPageContent('<div></div>')
     div = document.querySelector('div')
   })
 
