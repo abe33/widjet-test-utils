@@ -6,6 +6,7 @@ import glob from 'glob'
 import http from 'http'
 import {rollup} from 'rollup'
 import {when, always, merge} from 'widjet-utils'
+import * as babel from 'babel-core'
 
 import commonjs from 'rollup-plugin-commonjs'
 import nodeResolve from 'rollup-plugin-node-resolve'
@@ -13,8 +14,16 @@ import includePaths from 'rollup-plugin-includepaths'
 
 const cwd = process.cwd()
 
-const configPath = path.join(cwd, 'widjet-test-server.json')
-const serverConf = fs.existsSync(configPath) ? require(configPath) : {}
+const serverConfigPath = path.join(cwd, 'widjet-test-server.json')
+const babelRcPath = path.join(cwd, '.babelrc')
+
+const serverConf = fs.existsSync(serverConfigPath)
+  ? require(serverConfigPath)
+  : {}
+
+const babelConf = fs.existsSync(babelRcPath)
+  ? require(babelRcPath)
+  : require(path.join(cwd, 'package.json')).babel
 
 const rollupConf = serverConf.rollup || {}
 
@@ -108,13 +117,16 @@ const rollupResponse = (o) => {
       nodeResolve({jsnext: true, main: true}),
       commonjs()
     ]
-  }).then((bundle) => {
-    const result = bundle.generate({
+  }).then((bundle) =>
+    bundle.generate({
       format: rollupConf.format || 'iife',
       globals: merge({'mocha-jsdom': 'jsdom'}, rollupConf.globals || {})
     })
+  ).then((result) => {
+    const {code} = result
+    const js = babel.transform(code, babelConf)
 
-    response(o, 200, result.code)
+    response(o, 200, js.code)
   }).catch((err) => {
     response(o, 500, err)
   })
