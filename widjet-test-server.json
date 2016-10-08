@@ -11,6 +11,6 @@
   },
   "scripts": [
     "https://cdn.rawgit.com/Automattic/expect.js/0.3.1/index.js",
-    "http://cdnjs.cloudflare.com/ajax/libs/sinon.js/1.7.3/sinon-min.js"
+    "https://cdnjs.cloudflare.com/ajax/libs/sinon.js/1.15.4/sinon.min.js"
   ]
 }
