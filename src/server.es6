@@ -113,7 +113,7 @@ const rollupResponse = (o) => {
     external: ['mocha-jsdom'].concat(rollupConf.external || []),
     plugins: [
       includePaths({
-        paths: ['test/'].concat(rollupConf.includePaths || []),
+        paths: [path.join(cwd, 'test')].concat(rollupConf.includePaths || []),
         extensions: ['.js', '.json', '.es6']
       }),
       nodeResolve({jsnext: true, main: true}),
