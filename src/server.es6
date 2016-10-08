@@ -83,7 +83,7 @@ const response = ({req, res}, status, data, mode) => {
   log(req, status, statusColor(status))
   if (status === 500 && data.message) {
     console.log(String(data.message).red)
-    console.log(String(data.message.stack).grey)
+    console.log(String(data.stack).grey)
   }
 
   res.writeHead(status)
