@@ -114,7 +114,7 @@ const getScript = (path) =>
   `<script src='${path}' type='text/javascript'></script>`
 
 const getConditionalComment = (version, content) =>
-  `<!--[if IE ${version}]>${content}<![endif]-->`
+  [`<!--[if IE ${version}]>`].concat(content).concat(`<![endif]-->`)
 
 const matchPath = pattern => ({path}) => pattern.test(path.pathname)
 
