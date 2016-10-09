@@ -24,6 +24,16 @@ export const touchstart = generateTouchEventMethod('touchstart')
 export const touchmove = generateTouchEventMethod('touchmove')
 export const touchend = generateTouchEventMethod('touchend')
 
+export const createEvent = (type, eventType, properties) => {
+  try {
+    return new window[type](eventType, properties)
+  } catch (err) {
+    const e = document.createEvent(type)
+    e.initEvent(eventType, properties.bubbles, properties.cancelable)
+    return e
+  }
+}
+
 export function mouseEvent (type, properties) {
   const defaults = {
     bubbles: true,
@@ -48,7 +58,7 @@ export function mouseEvent (type, properties) {
     }
   }
 
-  const e = new window.MouseEvent(type, properties)
+  const e = createEvent('MouseEvent', type, properties)
 
   for (let k in properties) {
     if (e[k] !== properties[k]) {
@@ -60,7 +70,7 @@ export function mouseEvent (type, properties) {
 }
 
 export function touchEvent (type, touches) {
-  const event = new window.Event(type, {
+  const event = createEvent('Event', type, {
     bubbles: true,
     cancelable: true,
     view: window,
@@ -75,7 +85,7 @@ export function touchEvent (type, touches) {
 }
 
 export function keyboardEvent (type, properties) {
-  return new window.KeyboardEvent(type, properties)
+  return createEvent('KeyboardEvent', type, properties)
 }
 
 function generateMouseEventMethod (name) {
