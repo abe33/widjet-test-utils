@@ -7,7 +7,7 @@ import path from 'path'
 import glob from 'glob'
 import http from 'http'
 import {rollup} from 'rollup'
-import {when, always, merge} from 'widjet-utils'
+import {when, always, merge, asPair} from 'widjet-utils'
 import * as babel from 'babel-core'
 
 import commonjs from 'rollup-plugin-commonjs'
@@ -36,7 +36,7 @@ glob(path.join(cwd, process.argv.pop()), {}, (er, files) => {
   console.log('\nTest files:\n\n'.cyan + filesList)
 
   const html = getHTML({
-    scripts: (serverConf.scripts || []).map(getScript).join(''),
+    scripts: getScripts(serverConf.scripts || {}),
     testScripts: getTestScripts(files)
   })
 
@@ -98,8 +98,23 @@ const response = ({req, res}, status, data, headers = {}, mode) => {
 const getTestScripts = (files) =>
   files.map(f => getScript('/' + path.relative(cwd, f))).join('')
 
+const ie = (version) => ([key]) => key === `ie${version}`
+
+const scriptsMapper = when([
+  [ie(9), ([, scripts]) => getConditionalComment(9, scripts.map(getScript))],
+  [ie(8), ([, scripts]) => getConditionalComment(8, scripts.map(getScript))],
+  [always, ([, scripts]) => scripts.map(getScript)]
+])
+
+const scriptsReducer = (memo, a) => memo.concat(scriptsMapper(a))
+
+const getScripts = (conf) => asPair(conf).reduce(scriptsReducer, []).join('\n')
+
 const getScript = (path) =>
   `<script src='${path}' type='text/javascript'></script>`
+
+const getConditionalComment = (version, content) =>
+  `<!--[if IE ${version}]>${content}<![endif]-->`
 
 const matchPath = pattern => ({path}) => pattern.test(path.pathname)
 
