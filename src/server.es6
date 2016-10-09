@@ -53,9 +53,22 @@ glob(path.join(cwd, process.argv.pop()), {}, (er, files) => {
         'Content-Type': 'text/css'
       })
     ],
-    [matchPath(/\.es6$/), rollupResponse],
-    [matchPath(/^\/$/), (o) => response(o, 200, html, {'Content-Type': 'text/html'})],
-    [always, (o) => response(o, 404, 'not found', {'Content-Type': 'text/plain'})]
+    [
+      matchPath(/^\/ie8-patches.js$/),
+      (o) => response(o, 200, getIE8Patches())
+    ],
+    [
+      matchPath(/\.es6$/),
+      rollupResponse
+    ],
+    [
+      matchPath(/^\/$/),
+      (o) => response(o, 200, html, {'Content-Type': 'text/html'})
+    ],
+    [
+      always,
+      (o) => response(o, 404, 'not found', {'Content-Type': 'text/plain'})
+    ]
   ])
 
   server.listen(3000, () => {
@@ -152,6 +165,13 @@ const rollupResponse = (o) => {
     response(o, 500, err, {'Content-Type': 'text/plain'})
   })
 }
+
+const getIE8Patches = () =>
+  `
+    window.HTMLElement = window.Element
+    var createEvent = document.createEvent
+    document.createEvent = function (type) { return createEvent('Event') }
+  `
 
 const getHTML = ({scripts, testScripts}) =>
   `

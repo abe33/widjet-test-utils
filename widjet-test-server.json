@@ -12,7 +12,7 @@
   "scripts": {
     "ie8": [
       "//cdnjs.cloudflare.com/ajax/libs/ie8/0.4.1/ie8.js",
-      "/server/ie8-patches.es6",
+      "/ie8-patches.js",
       "//cdnjs.cloudflare.com/ajax/libs/native-promise-only/0.8.1/npo.js",
       "//cdn.rawgit.com/plusdude/array-generics/master/array.generics.min.js"
     ],
