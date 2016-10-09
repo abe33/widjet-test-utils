@@ -43,15 +43,19 @@ glob(path.join(cwd, process.argv.pop()), {}, (er, files) => {
   const server = createServer([
     [
       matchPath(/mocha\.js$/),
-      staticFile(path.resolve(cwd, 'node_modules/mocha/mocha.js'))
+      staticFile(path.resolve(cwd, 'node_modules/mocha/mocha.js'), {
+        'Content-Type': 'application/javascript'
+      })
     ],
     [
       matchPath(/mocha\.css$/),
-      staticFile(path.resolve(cwd, 'node_modules/mocha/mocha.css'))
+      staticFile(path.resolve(cwd, 'node_modules/mocha/mocha.css'), {
+        'Content-Type': 'text/css'
+      })
     ],
     [matchPath(/\.es6$/), rollupResponse],
-    [matchPath(/^\/$/), (o) => response(o, 200, html)],
-    [always, (o) => response(o, 404, 'not found')]
+    [matchPath(/^\/$/), (o) => response(o, 200, html, {'Content-Type': 'text/html'})],
+    [always, (o) => response(o, 404, 'not found', {'Content-Type': 'text/plain'})]
   ])
 
   server.listen(3000, () => {
@@ -79,14 +83,14 @@ const statusColor = when([
   [always, s => 'red']
 ])
 
-const response = ({req, res}, status, data, mode) => {
+const response = ({req, res}, status, data, headers = {}, mode) => {
   log(req, status, statusColor(status))
   if (status === 500 && data.message) {
     console.log(String(data.message).red)
     console.log(String(data.stack).grey)
   }
 
-  res.writeHead(status)
+  res.writeHead(status, headers)
   res.write(data, mode)
   res.end()
 }
@@ -99,11 +103,11 @@ const getScript = (path) =>
 
 const matchPath = pattern => ({path}) => pattern.test(path.pathname)
 
-const staticFile = filepath => (o) => {
+const staticFile = (filepath, headers) => (o) => {
   fs.readFile(filepath, 'binary', (err, file) =>
     err
-      ? response(o, 500, err)
-      : response(o, 200, file, 'binary')
+      ? response(o, 500, err, {'Content-Type': 'text/plain'})
+      : response(o, 200, file, headers, 'binary')
   )
 }
 
@@ -128,9 +132,9 @@ const rollupResponse = (o) => {
     const {code} = result
     const js = babel.transform(code, babelConf)
 
-    response(o, 200, js.code)
+    response(o, 200, js.code, {'Content-Type': 'application/javascript'})
   }).catch((err) => {
-    response(o, 500, err)
+    response(o, 500, err, {'Content-Type': 'text/plain'})
   })
 }
 
@@ -140,7 +144,7 @@ const getHTML = ({scripts, testScripts}) =>
     <html>
       <head>
         <meta charset='utf-8'>
-        <link href='/mocha.css' rel='stylesheet'>
+        <link href='/mocha.css' rel='stylesheet' type='text/css'>
       </head>
 
       <body>
