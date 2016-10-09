@@ -1,3 +1,4 @@
+
 export function getBox (top, left, width, height) {
   return {
     top, left,
@@ -8,8 +9,11 @@ export function getBox (top, left, width, height) {
 }
 
 export function setPageContent (content) {
-  const container = document.querySelector('#mocha-container') || document.body
-  container.innerHTML = content
+  getTestRoot().innerHTML = content
+}
+
+export function getTestRoot () {
+  return document.querySelector('#mocha-container') || document.body
 }
 
 export function objectCenterCoordinates (obj) {
