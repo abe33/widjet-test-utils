@@ -9,16 +9,26 @@ import http from 'http'
 import {rollup} from 'rollup'
 import {when, always, merge, asPair} from 'widjet-utils'
 import * as babel from 'babel-core'
+import program from 'commander'
 
 import commonjs from 'rollup-plugin-commonjs'
 import nodeResolve from 'rollup-plugin-node-resolve'
 import includePaths from 'rollup-plugin-includepaths'
 
-const cwd = process.cwd()
+program
+.version(require('./package.json').version)
+.usage('[options] <globs ...>')
+.option('-p, --port <n>', 'Set server port', parseInt)
+.parse(process.argv)
 
-const pattern = process.argv.pop()
+const cwd = process.cwd()
+const port = program.port || 8888
 
 const getTestFiles = () =>
+  Promise.all(program.args.map(globFiles))
+  .then((files) => files.reduce((memo, f) => memo.concat(f), []))
+
+const globFiles = (pattern) =>
   new Promise((resolve, reject) => {
     glob(path.join(cwd, pattern), {}, (err, files) => {
       err ? reject(err) : resolve(files)
@@ -71,8 +81,8 @@ getTestFiles().then((files) => {
     ]
   ])
 
-  server.listen(3000, () => {
-    console.log('\nlistening on'.grey, 'localhost:3000\n'.green)
+  server.listen(port, () => {
+    console.log('\nlistening on'.grey, `localhost:${port}\n`.green)
   })
 })
 
