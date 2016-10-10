@@ -19,6 +19,7 @@ program
 .version(require('./package.json').version)
 .usage('[options] <globs ...>')
 .option('-p, --port <n>', 'Set server port', parseInt)
+.option('-c, --config <p>', 'Path to server configuration')
 .parse(process.argv)
 
 const cwd = process.cwd()
@@ -178,7 +179,7 @@ const rollupResponse = (o) => {
 }
 
 const getServerConfig = () => {
-  const serverConfigPath = path.join(cwd, 'widjet-test-server.json')
+  const serverConfigPath = path.join(cwd, program.config || 'widjet-test-server.json')
   return fs.existsSync(serverConfigPath)
     ? JSON.parse(fs.readFileSync(serverConfigPath))
     : {}
