@@ -1,10 +1,12 @@
 {
   "rollup": {
     "globals": {
+      "mocha-jsdom": "jsdom",
       "expect.js": "expect",
       "sinon": "sinon"
     },
     "external": [
+      "mocha-jsdom",
       "expect.js",
       "sinon"
     ]

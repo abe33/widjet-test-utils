@@ -25,6 +25,8 @@ program
 const cwd = process.cwd()
 const port = program.port || 8888
 
+const DEFAULT_CONFIG = require('./widjet-test-server-default.json')
+
 const getTestFiles = () =>
   Promise.all(program.args.map(globFiles))
   .then((files) => files.reduce((memo, f) => memo.concat(f), []))
@@ -179,10 +181,11 @@ const rollupResponse = (o) => {
 }
 
 const getServerConfig = () => {
-  const serverConfigPath = path.join(cwd, program.config || 'widjet-test-server.json')
-  return fs.existsSync(serverConfigPath)
-    ? JSON.parse(fs.readFileSync(serverConfigPath))
-    : {}
+  const p = path.join(cwd, program.config || 'widjet-test-server.json')
+  return deepMerge([
+    DEFAULT_CONFIG,
+    fs.existsSync(p) ? JSON.parse(fs.readFileSync(p)) : {}
+  ])
 }
 
 const getRollupConfig = () => getServerConfig().rollup || {}
@@ -194,6 +197,25 @@ const getBabelConfig = () => {
     ? JSON.parse(fs.readFileSync(babelRcPath))
     : JSON.parse(fs.readFileSync(path.join(cwd, 'package.json'))).babel
 }
+
+const deepMerge = when([
+  [
+    ([a, b]) => Array.isArray(a) && Array.isArray(b),
+    ([a, b]) => a.concat(b)
+  ],
+  [
+    ([a, b]) => typeof a === 'object' && typeof b === 'object',
+    ([a, b]) => {
+      const c = {}
+
+      for (let k in a) { c[k] = a[k] }
+      for (let k in b) { c[k] = deepMerge(c[k], b[k]) }
+
+      return c
+    }
+  ],
+  [always, ([a, b]) => a || b]
+])
 
 const getIE8Patches = () =>
   `
