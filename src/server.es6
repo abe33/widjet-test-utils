@@ -16,29 +16,20 @@ import includePaths from 'rollup-plugin-includepaths'
 
 const cwd = process.cwd()
 
-const serverConfigPath = path.join(cwd, 'widjet-test-server.json')
-const babelRcPath = path.join(cwd, '.babelrc')
+const pattern = process.argv.pop()
 
-const serverConf = fs.existsSync(serverConfigPath)
-  ? require(serverConfigPath)
-  : {}
+const getTestFiles = () =>
+  new Promise((resolve, reject) => {
+    glob(path.join(cwd, pattern), {}, (err, files) => {
+      err ? reject(err) : resolve(files)
+    })
+  })
 
-const babelConf = fs.existsSync(babelRcPath)
-  ? require(babelRcPath)
-  : require(path.join(cwd, 'package.json')).babel
-
-const rollupConf = serverConf.rollup || {}
-
-glob(path.join(cwd, process.argv.pop()), {}, (er, files) => {
+getTestFiles().then((files) => {
   const filesList = files
   .map(f => `${(cwd + '/').grey}${path.relative(cwd, f).cyan}`)
   .join('\n')
   console.log('\nTest files:\n\n'.cyan + filesList)
-
-  const html = getHTML({
-    scripts: getScripts(serverConf.scripts || {}),
-    testScripts: getTestScripts(files)
-  })
 
   const server = createServer([
     [
@@ -63,7 +54,16 @@ glob(path.join(cwd, process.argv.pop()), {}, (er, files) => {
     ],
     [
       matchPath(/^\/$/),
-      (o) => response(o, 200, html, {'Content-Type': 'text/html'})
+      (o) => {
+        getTestFiles().then((files) => {
+          response(o, 200, getHTML({
+            scripts: getScripts(getServerConfig().scripts || {}),
+            testScripts: getTestScripts(files)
+          }), {'Content-Type': 'text/html'})
+        }).catch((err) => {
+          response(o, 500, err, {'Content-Type': 'text/plain'})
+        })
+      }
     ],
     [
       always,
@@ -140,6 +140,7 @@ const staticFile = (filepath, headers) => (o) => {
 }
 
 const rollupResponse = (o) => {
+  const rollupConf = getRollupConfig()
   rollup({
     entry: path.join(cwd, o.path.pathname),
     external: ['mocha-jsdom'].concat(rollupConf.external || []),
@@ -158,12 +159,29 @@ const rollupResponse = (o) => {
     })
   ).then((result) => {
     const {code} = result
-    const js = babel.transform(code, babelConf)
+    const js = babel.transform(code, getBabelConfig())
 
     response(o, 200, js.code, {'Content-Type': 'application/javascript'})
   }).catch((err) => {
     response(o, 500, err, {'Content-Type': 'text/plain'})
   })
+}
+
+const getServerConfig = () => {
+  const serverConfigPath = path.join(cwd, 'widjet-test-server.json')
+  return fs.existsSync(serverConfigPath)
+    ? JSON.parse(fs.readFileSync(serverConfigPath))
+    : {}
+}
+
+const getRollupConfig = () => getServerConfig().rollup || {}
+
+const getBabelConfig = () => {
+  const babelRcPath = path.join(cwd, '.babelrc')
+
+  return fs.existsSync(babelRcPath)
+    ? JSON.parse(fs.readFileSync(babelRcPath))
+    : JSON.parse(fs.readFileSync(path.join(cwd, 'package.json'))).babel
 }
 
 const getIE8Patches = () =>
