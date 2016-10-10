@@ -204,12 +204,12 @@ const deepMerge = when([
     ([a, b]) => a.concat(b)
   ],
   [
-    ([a, b]) => typeof a === 'object' && typeof b === 'object',
+    ([a, b]) => typeof a === 'object' && a && typeof b === 'object' && b,
     ([a, b]) => {
       const c = {}
 
       for (let k in a) { c[k] = a[k] }
-      for (let k in b) { c[k] = deepMerge(c[k], b[k]) }
+      for (let k in b) { c[k] = deepMerge([c[k], b[k]]) }
 
       return c
     }
