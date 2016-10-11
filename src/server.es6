@@ -251,12 +251,13 @@ const getHTML = ({scripts, testScripts, options}) =>
         <script type='text/javascript' src='/mocha.js'></script>
         ${scripts}
         <script>
-          mocha.setup(${options})
+          window.mochaSetup = ${options}
+          mocha.setup(mochaSetup)
           window.jsdom = function(){}
         </script>
         ${testScripts}
         <script>
-          mocha.checkLeaks()
+          if (!mochaSetup.ignoreLeaks) { mocha.checkLeaks() }
           mocha.run()
         </script>
       </body>
