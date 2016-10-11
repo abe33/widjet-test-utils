@@ -47,13 +47,13 @@ getTestFiles().then((files) => {
   const server = createServer([
     [
       matchPath(/mocha\.js$/),
-      staticFile(path.resolve(cwd, 'node_modules/mocha/mocha.js'), {
+      staticFile('node_modules/mocha/mocha.js', {
         'Content-Type': 'application/javascript'
       })
     ],
     [
       matchPath(/mocha\.css$/),
-      staticFile(path.resolve(cwd, 'node_modules/mocha/mocha.css'), {
+      staticFile('node_modules/mocha/mocha.css', {
         'Content-Type': 'text/css'
       })
     ],
@@ -146,7 +146,14 @@ const getConditionalComment = (version, content) =>
 const matchPath = pattern => ({path}) => pattern.test(path.pathname)
 
 const staticFile = (filepath, headers) => (o) => {
-  fs.readFile(filepath, 'binary', (err, file) =>
+  const cwdPath = path.join(cwd, filepath)
+  const localPath = path.join(__dirname, filepath)
+
+  console.log(cwdPath, localPath)
+
+  const targetPath = fs.existsSync(cwdPath) ? cwdPath : localPath
+
+  fs.readFile(targetPath, 'binary', (err, file) =>
     err
       ? response(o, 500, err, {'Content-Type': 'text/plain'})
       : response(o, 200, file, headers, 'binary')
