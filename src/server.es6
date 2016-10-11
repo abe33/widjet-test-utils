@@ -151,8 +151,6 @@ const staticFile = (filepath, headers) => (o) => {
   const cwdPath = path.join(cwd, filepath)
   const localPath = path.join(__dirname, filepath)
 
-  console.log(cwdPath, localPath)
-
   const targetPath = fs.existsSync(cwdPath) ? cwdPath : localPath
 
   fs.readFile(targetPath, 'binary', (err, file) =>
