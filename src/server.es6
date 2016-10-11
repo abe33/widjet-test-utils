@@ -71,7 +71,8 @@ getTestFiles().then((files) => {
         getTestFiles().then((files) => {
           response(o, 200, getHTML({
             scripts: getScripts(getServerConfig().scripts || {}),
-            testScripts: getTestScripts(files)
+            testScripts: getTestScripts(files),
+            options: getMochaConfig()
           }), {'Content-Type': 'text/html'})
         }).catch((err) => {
           response(o, 500, err, {'Content-Type': 'text/plain'})
@@ -198,6 +199,17 @@ const getBabelConfig = () => {
     : JSON.parse(fs.readFileSync(path.join(cwd, 'package.json'))).babel
 }
 
+const getMochaConfig = () => {
+  const mochaConfPath = path.join(cwd, 'mocha.json')
+
+  return JSON.stringify(deepMerge([
+    {ui: 'bdd'},
+    fs.existsSync(mochaConfPath)
+      ? JSON.parse(fs.readFileSync(mochaConfPath))
+      : {}
+  ]), null, 2)
+}
+
 const deepMerge = when([
   [
     ([a, b]) => Array.isArray(a) && Array.isArray(b),
@@ -224,7 +236,7 @@ const getIE8Patches = () =>
     document.createEvent = function (type) { return createEvent('Event') }
   `
 
-const getHTML = ({scripts, testScripts}) =>
+const getHTML = ({scripts, testScripts, options}) =>
   `
     <!doctype html>
     <html>
@@ -239,7 +251,7 @@ const getHTML = ({scripts, testScripts}) =>
         <script type='text/javascript' src='/mocha.js'></script>
         ${scripts}
         <script>
-          mocha.setup('bdd')
+          mocha.setup(${options})
           window.jsdom = function(){}
         </script>
         ${testScripts}
