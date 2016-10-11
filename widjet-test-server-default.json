@@ -18,10 +18,12 @@
       "/polyfills/window/html-element.js",
       "/polyfills/object/create.js",
       "/polyfills/object/keys.js",
+      "//cdnjs.cloudflare.com/ajax/libs/dom4/1.8.3/dom4.js",
       "//cdnjs.cloudflare.com/ajax/libs/native-promise-only/0.8.1/npo.js",
       "//cdn.rawgit.com/plusdude/array-generics/master/array.generics.min.js"
     ],
     "ie9": [
+      "//cdnjs.cloudflare.com/ajax/libs/dom4/1.8.3/dom4.js",
       "//cdnjs.cloudflare.com/ajax/libs/native-promise-only/0.8.1/npo.js"
     ],
     "all" : [
