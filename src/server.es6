@@ -58,8 +58,10 @@ getTestFiles().then((files) => {
       })
     ],
     [
-      matchPath(/^\/ie8-patches.js$/),
-      (o) => response(o, 200, getIE8Patches())
+      matchPath(/\.js$/),
+      (o) => staticFile(o.path.pathname, {
+        'Content-Type': 'text/css'
+      })(o)
     ],
     [
       matchPath(/\.es6$/),
@@ -235,13 +237,6 @@ const deepMerge = when([
   ],
   [always, ([a, b]) => a || b]
 ])
-
-const getIE8Patches = () =>
-  `
-    window.HTMLElement = window.Element
-    var createEvent = document.createEvent
-    document.createEvent = function (type) { return createEvent('Event') }
-  `
 
 const getHTML = ({scripts, testScripts, options}) =>
   `
