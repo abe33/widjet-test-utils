@@ -1,8 +1,8 @@
 if (!Object.create) {
-  Object.create = function (o = {}, properties) {
+  Object.create = function (o, properties) {
     function F () {}
 
-    F.prototype = o
+    F.prototype = o || {}
 
     return new F()
   }
