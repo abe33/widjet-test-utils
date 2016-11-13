@@ -3,7 +3,7 @@ export function getBox (top, left, width, height) {
   return {
     top, left,
     width, height,
-    right: top + width,
+    right: left + width,
     bottom: top + height
   }
 }
