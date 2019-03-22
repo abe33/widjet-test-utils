@@ -56,8 +56,7 @@
     "mocha": "^6.0.2",
     "mocha-jsdom": "^2.0.0",
     "nyc": "^8.3.0",
-    "sinon": "^1.17.4",
-    "standard": "^5.4.1"
+    "sinon": "^1.17.4"
   },
   "dependencies": {
     "colors": "^1.1.2",
