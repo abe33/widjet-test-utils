@@ -10,7 +10,7 @@ import {
 } from '../src/events';
 
 describe('events helper', () => {
-  jsdom();
+  jsdom({url: 'http://localhost'});
 
   fakeBoundingClientRects(function() { return getBox(0, 0, 100, 200); });
 

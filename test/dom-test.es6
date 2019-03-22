@@ -4,7 +4,7 @@ import jsdom from 'mocha-jsdom';
 import {fakeBoundingClientRects, getBox, setPageContent, getTestRoot} from '../src/dom';
 
 describe('dom helper', () => {
-  jsdom();
+  jsdom({url: 'http://localhost'});
 
   let child, parent;
 
@@ -14,7 +14,7 @@ describe('dom helper', () => {
     } else if (this.classList.contains('child')) {
       return getBox(120, 70, 60, 160);
     } else {
-      return getBox(0, 0, 0, 0);
+      return undefined;
     }
   });
 
