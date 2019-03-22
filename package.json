@@ -15,7 +15,6 @@
     "lint": "eslint src/*.es6 test/*.es6",
     "lint:fix": "eslint --fix src/*.es6 test/*.es6",
     "esdoc": "esdoc -c esdoc.json",
-    "install": "npm run babel",
     "prepublishOnly": "npm run babel",
     "start": "npm run babel && node ./server.js test/**/*.es6"
   },
@@ -38,8 +37,8 @@
   "devDependencies": {
     "@babel/cli": "^7.2.3",
     "@babel/core": "^7.2.3",
-    "@babel/register": "^7.4.0",
     "@babel/preset-env": "^7.4.2",
+    "@babel/register": "^7.4.0",
     "babel-eslint": "^10.0.0",
     "codecov": "^1.0.0",
     "esdoc": "^1.1.0",
@@ -55,7 +54,7 @@
     "fbjs": "^0.8.6",
     "mocha": "^6.0.2",
     "mocha-jsdom": "^2.0.0",
-    "nyc": "^8.3.0",
+    "nyc": "^13.3.0",
     "sinon": "^1.17.4"
   },
   "dependencies": {
@@ -66,24 +65,14 @@
     "rollup-plugin-babel": "^2.6.1",
     "rollup-plugin-commonjs": "^5.0.4",
     "rollup-plugin-includepaths": "^0.1.6",
-    "rollup-plugin-node-resolve": "^2.0.0",
-    "widjet-utils": "^1.0.0"
+    "rollup-plugin-node-resolve": "^2.0.0"
   },
   "babel": {
     "sourceMaps": "inline",
     "presets": [
       "@babel/preset-env"
     ],
-    "plugins": [
-      [
-        "transform-es2015-modules-commonjs",
-        {
-          "loose": true
-        }
-      ],
-      "transform-es3-member-expression-literals",
-      "transform-es3-property-literals"
-    ],
+    "plugins": [],
     "env": {
       "test": {
         "plugins": [

@@ -7,8 +7,8 @@ import path from 'path';
 import glob from 'glob';
 import http from 'http';
 import {rollup} from 'rollup';
-import {when, always, merge, asPair} from 'widjet-utils';
-import * as babel from 'babel-core';
+import {when, always, merge, asPair} from './utils';
+import * as babel from '@babel/core';
 import program from 'commander';
 
 import commonjs from 'rollup-plugin-commonjs';

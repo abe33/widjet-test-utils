@@ -1,4 +1,4 @@
-import {asPair} from 'widjet-utils';
+import {asPair} from './utils';
 
 if (!Object.getPropertyDescriptor) {
   var getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
