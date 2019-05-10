@@ -64,6 +64,24 @@ getTestFiles().then((files) => {
       })(o),
     ],
     [
+      matchPath(/\.css$/),
+      (o) => staticFile(o.path.pathname, {
+        'Content-Type': 'text/css',
+      })(o),
+    ],
+    [
+      matchPath(/\.html$/),
+      (o) => staticFile(o.path.pathname, {
+        'Content-Type': 'text/html',
+      })(o),
+    ],
+    [
+      matchPath(/\.json$/),
+      (o) => staticFile(o.path.pathname, {
+        'Content-Type': 'application/json',
+      })(o),
+    ],
+    [
       matchPath(/\.es6$/),
       rollupResponse,
     ],
