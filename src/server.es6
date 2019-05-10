@@ -171,11 +171,17 @@ const staticFile = (filepath, headers) => (o) => {
 
   const targetPath = fs.existsSync(cwdPath) ? cwdPath : localPath;
 
-  fs.readFile(targetPath, 'binary', (err, file) =>
-    err
-      ? response(o, 500, err, {'Content-Type': 'text/plain'})
-      : response(o, 200, file, headers, 'binary')
-  );
+  fs.exists(targetPath, (bool) => {
+    if (bool) {
+      fs.readFile(targetPath, 'binary', (err, file) =>
+        err
+          ? response(o, 500, err, {'Content-Type': 'text/plain'})
+          : response(o, 200, file, headers, 'binary')
+      );
+    } else {
+      response(o, 404, 'not found', {'Content-Type': 'text/plain'});
+    }
+  });
 };
 
 const rollupResponse = (o) => {
