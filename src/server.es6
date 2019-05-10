@@ -60,7 +60,7 @@ getTestFiles().then((files) => {
     [
       matchPath(/\.js$/),
       (o) => staticFile(o.path.pathname, {
-        'Content-Type': 'text/css',
+        'Content-Type': 'application/javascript',
       })(o),
     ],
     [
