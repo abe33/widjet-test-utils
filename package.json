@@ -83,10 +83,10 @@
   },
   "nyc": {
     "include": [
-      "src/*.es6"
+      "src/*.js"
     ],
     "extension": [
-      ".es6"
+      ".js"
     ],
     "require": [
       "@babel/register"
