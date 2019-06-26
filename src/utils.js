@@ -51,3 +51,5 @@ export const when = curry2((predicates, ...values) => {
 
 export const asArray = (collection) => slice.call(collection);
 export const asPair = (object) => Object.keys(object).map((k) => [k, object[k]]);
+
+export const allOf = (...predicates) => (...args) => predicates.every(f => f(...args));

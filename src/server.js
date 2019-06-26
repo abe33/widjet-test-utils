@@ -7,7 +7,7 @@ import path from 'path';
 import glob from 'glob';
 import http from 'http';
 import {rollup} from 'rollup';
-import {when, always, merge, asPair} from './utils';
+import {when, always, merge, asPair, allOf} from './utils';
 import * as babel from '@babel/core';
 import program from 'commander';
 
@@ -42,6 +42,7 @@ getTestFiles().then((files) => {
   const filesList = files
     .map(f => `${(cwd + '/').grey}${path.relative(cwd, f).cyan}`)
     .join('\n');
+
   console.log('\nTest files:\n\n'.cyan + filesList);
 
   const server = createServer([
@@ -56,6 +57,10 @@ getTestFiles().then((files) => {
       staticFile('node_modules/mocha/mocha.css', {
         'Content-Type': 'text/css',
       }),
+    ],
+    [
+      allOf(matchPath(/\.(es6|js|mjs)$/), matchFiles(files)),
+      rollupResponse,
     ],
     [
       matchPath(/\.js$/),
@@ -80,10 +85,6 @@ getTestFiles().then((files) => {
       (o) => staticFile(o.path.pathname, {
         'Content-Type': 'application/json',
       })(o),
-    ],
-    [
-      matchPath(/\.es6$/),
-      rollupResponse,
     ],
     [
       matchPath(/^\/$/),
@@ -164,6 +165,10 @@ const getConditionalComment = (version, content) =>
   [`<!--[if IE ${version}]>`].concat(content).concat('<![endif]-->');
 
 const matchPath = pattern => ({path}) => pattern.test(path.pathname);
+const matchFiles = files => {
+  const relativePaths = files.map(f => `/${path.relative(cwd, f)}`);
+  return ({path}) => relativePaths.some(f => f === path.pathname);
+};
 
 const staticFile = (filepath, headers) => (o) => {
   const cwdPath = path.join(cwd, filepath);
